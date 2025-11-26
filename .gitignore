@@ -1,0 +1,50 @@
+# -----------------------------------------------------------------------------
+# Terraform (General)
+# -----------------------------------------------------------------------------
+
+# Local .terraform directories
+# This is the directory that contained the massive .exe file causing your error.
+# It holds downloaded provider binaries and modules.
+**/.terraform/*
+
+# Terraform state files (containing sensitive data and local execution state)
+# These should always be stored in a remote backend (like S3 or Azure Storage)
+# for team collaboration and security.
+*.tfstate
+*.tfstate.*
+
+# Crash log files (generated during local execution failures)
+crash.log
+crash.*.log
+
+# -----------------------------------------------------------------------------
+# Sensitive and Environment Files
+# -----------------------------------------------------------------------------
+
+# Variable definition files that often contain sensitive data (passwords, keys)
+# You should manage these securely outside of source control (e.g., environment vars).
+*.tfvars
+*.tfvars.json
+
+# Ignore override files (used for local testing/debugging)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# -----------------------------------------------------------------------------
+# Other Local/Execution Artifacts
+# -----------------------------------------------------------------------------
+
+# Saved plan files (created with `terraform plan -out=...`)
+*.tfplan
+*.tfplan.json
+
+# Terraform CLI configuration files
+.terraformrc
+terraform.rc
+
+# Local macOS/IDE files
+.DS_Store
+.idea/
+.vscode/
