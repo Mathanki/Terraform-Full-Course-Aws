@@ -1,0 +1,223 @@
+
+# Day 5: Terraform Variables-#30DaysOfAWSTerraform
+
+
+Terraform variables are **inputs** that allow to customize infrastructure without modifying the main configuration. Think of them like function arguments — you write your Terraform code once but change the values whenever needed.
+
+Why variables matter:
+
+-   Avoid hard-coding resource values
+    
+-   Make Terraform configurations reusable
+    
+-   Improve code organization
+    
+-   Support multiple environments (dev, test, prod)
+    
+
+Types of Variables in Terraform
+
+![](day-5-blog-images/17bed114-b462-490f-9151-f1043c904e2f.png)
+
+Terraform uses variables to define values that can be passed into your configuration, making your code reusable and configurable. They are broadly categorized in two ways: by **purpose** (how they are used) and by **value** (what type of data they hold).
+
+1.  **Based on Purpose (How they are used)**
+
+#### **Input Variables**
+
+These are the most common type. They allow you to define parameters for your configuration, letting users customize the deployment without editing the core code.
+
+Example code:
+
+```
+variable "environment" {
+    default = "dev"
+    type = string
+}
+
+#Create S3 Bucket
+resource "aws_s3_bucket" "first_demo_bucket"{
+  bucket = "tech-demo-mathanki-bucket-1-${aws_vpc.demo_vpc.id}"
+
+  tags = {
+    Name        = "${var.environment}-my-bucket-1.0"
+    Environment = var.environment
+  }
+}
+```
+
+access the variable value using the `var.` prefix.
+
+Terraform gives multiple flexible ways to assign values to input variables. Each approach is useful in a different scenario.
+
+1.  Default values
+
+```
+variable "environment" {
+    default = "dev"
+    type = string
+}
+```
+
+when run `terraform plan` without passing anything it set the environment=dev
+
+When to use:
+
+-   When you want a safe fallback value
+    
+-   When running Terraform in development or tutorials
+    
+-   When the variable is optional
+    
+
+2\. terraform.tfvars File (Auto-loaded)
+
+This file is automatically read by Terraform if present in the working directory.
+
+![](day-5-blog-images/861be678-4ce5-48e0-ae46-600c71cde983.png)
+
+How it works:
+
+-   Terraform automatically loads **terraform.tfvars**
+    
+-   It overrides default values
+    
+
+When to use:
+
+-   To store environment-specific values
+    
+-   To keep variable values separate from code
+    
+-   Very common in production setups (e.g., dev.tfvars, prod.tfvars)
+    
+
+![](day-5-blog-images/512ca81d-1258-41f7-98ad-329384b78f46.png)
+
+3\. Command Line Flags (-var)
+
+Pass variable values directly when running Terraform commands.
+
+![](day-5-blog-images/343286ed-e233-4264-a644-7ace824d3f25.png)
+
+How it works:
+
+-   CLI variables override _both defaults_ and _tfvars files_
+
+When to use:
+
+-   Quick testing
+    
+-   CI/CD pipelines
+    
+-   When you want temporary values without editing files
+    
+
+Avoid using this for sensitive values like passwords — it may get logged in terminal history.
+
+4\. Environment Variables (TF\_VAR\_)
+
+Terraform automatically loads environment variables prefixed with `TF_VAR_`
+
+![](day-5-blog-images/81bd978c-a9a9-40e5-8d83-80873e024606.png)
+
+How it works
+
+-   The variable `TF_VAR_environment` maps to `var.environment`
+    
+-   Overrides default & tfvars unless CLI `-var` is used
+    
+
+When to use:
+
+-   Passing secrets from a secure environment (Azure DevOps, GitHub Actions, Jenkins, AWS SSM)
+    
+-   Preventing credentials from being stored in files
+    
+-   CI/CD environments
+    
+
+Most secure method
+
+Useful when integrating Terraform with:
+
+-   HashiCorp Vault
+    
+-   AWS Secrets Manager
+    
+-   GitHub Actions Secrets
+    
+-   Docker & Kubernetes environments
+    
+
+**Priority Order (Highest → Lowest)**
+
+Terraform applies values in this order:
+
+1.  **CLI** `-var` (Highest priority)
+    
+2.  **Environment variables (**`TF_VAR_`**)**
+    
+3.  **.tfvars files**
+    
+4.  **Default values in [variables.tf](http://variables.tf/)** (Lowest priority)
+    
+
+#### **Locals (Local Values)**
+
+To define named expressions within a module. They help you avoid repeating the same complex logic or string concatenation multiple times, improving readability and maintainability. Locals are not exposed to the user like Input or Output variables.
+
+Example code:
+
+```
+locals {
+  bucket_name="${var.bucket-name}-${var.environment}"
+  vpc_name="${var.environment}-vpc"
+}
+
+#Create S3 Bucket
+resource "aws_s3_bucket" "first_demo_bucket"{
+  bucket = local.bucket_name
+
+  tags = {
+    Name        = local.bucket_name
+    Environment = var.environment
+  }
+}
+```
+
+access the value using the `local.` prefix.
+
+#### **Output(Output Values)**
+
+To return specific, important attributes of the created infrastructure to the command line user or to other Terraform configurations that depend on this module.
+
+Example code:
+
+```
+output "vpc_id" {
+    value = aws_vpc.demo_vpc.id
+}
+
+output "ec2_id" {
+    value = aws_instance.web_server.id
+}
+```
+
+After running `terraform apply`, these values are displayed in the terminal:
+
+![](day-5-blog-images/6fb8fcd7-e47a-4278-aa76-c394d015f774.png)
+
+Once the resources are created, the output values are available for display using the following command:
+
+terraform output
+
+![](day-5-blog-images/102b95b2-4c1e-42bb-9db8-11bd91b3fe26.png)
+
+#### Conclusion
+
+**Terraform variables** are the foundational elements that inject **flexibility** and **reusability** into your Infrastructure as Code (IaC). By skillfully leveraging **input variables** (for external configuration), **local variables** (for internal computation and reuse), and **output variables** (for exposing critical resource data), you transform static configurations into dynamic, adaptable blueprints
+
+#### Reference
+
+[Terraform Variables in AWS — Input vs Output vs Local Variables](https://www.youtube.com/watch?v=V-2yC39BONc&list=PLl4APkPHzsUXcfBSJDExYR-a4fQiZGmMp&index=8)
