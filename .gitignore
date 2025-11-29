@@ -1,11 +1,15 @@
 # Terraform files
 *.tfstate
+*.tfstate.*
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
+.terraform*
 
 # Crash log files
 crash.log
+#log files
+*.log
 # Ignore local environment files
 *.tfvars
 *.tfvars.json
