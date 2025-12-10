@@ -19,7 +19,7 @@ variable "primary_vpc_cidr" {
 variable "secondary_vpc_cidr" {
   description = "CIDR block for the secondary VPC"
   type        = string
-  default     = "10.0.0.1/16"
+  default     = "10.1.0.0/16"
 }
 
 variable "primary_subnet_cidr" {
