@@ -22,4 +22,6 @@ override.tf.json
 
 # IDE files
 .vscode/
-*.swp
+
+# Ignore all private key files
+*.pem
