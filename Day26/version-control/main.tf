@@ -32,3 +32,12 @@ resource "aws_s3_bucket" "first_demo_bucket"{
   }
 }
 
+resource "aws_s3_bucket" "second_demo_bucket"{
+  bucket = "tech-demo-mathanki-bucket-2-${aws_vpc.demo_vpc.id}"
+
+  tags = {
+    Name        = "My bucket 1.0"
+    Environment = "Dev"
+  }
+}
+
