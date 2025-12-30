@@ -1,0 +1,341 @@
+
+# Day 26 : Mastering HCP Terraform: Why and How to Move Beyond the CLI | #30DaysOfAWSTerraform
+
+
+Terraform has become the backbone of modern Infrastructure as Code (IaC). Most engineers start their journey using the Terraform CLI—running `terraform init`, `plan`, and `apply` locally. While this works well for learning and small projects, **CLI-only workflows quickly become risky and unscalable in real-world teams**.
+
+That’s where **HCP Terraform (formerly Terraform Cloud)** comes in.
+
+In this blog, we’ll explore **why moving beyond the CLI is essential** and **how HCP Terraform helps you operate Terraform at scale with security, collaboration, and automation**.
+
+## The Limitations of Terraform CLI
+
+Using Terraform locally on your machine comes with several "growing pains":
+
+-   **Credential Management:** Storing AWS/Azure secrets in local environment variables isn't secure for teams.
+    
+-   **State File Risks:** Managing remote backends (like S3 buckets) manually can lead to state locking issues or accidental deletion.
+    
+-   **No Built-in CI/CD:** You have to run commands manually unless you set up complex third-party pipelines (GitHub Actions, etc.)
+    
+-   **Lack of Visibility:** There’s no central GUI to see the history of infrastructure changes or logs.
+    
+
+## What Is HCP Terraform?
+
+**HCP Terraform** is HashiCorp’s managed Terraform platform that brings **collaboration, governance, security, and automation** to Terraform workflows.
+
+Instead of running Terraform locally, **runs are executed remotely** in a controlled and auditable environment.
+
+Think of it as: **Terraform + CI/CD + Security + Collaboration — all in one platform**
+
+## The Hierarchy of HCP Terraform
+
+To understand why **HCP Terraform** is better for governance than the CLI, you have to look at its **Hierarchy**. In a CLI-only world, your "hierarchy" is just a mess of folders on a laptop. In HCP Terraform, it is a structured environment designed to scale.
+
+Here is an explanation of those three levels and how they solve the "No Governance" problem:
+
+![](day-26/7b45b8df-be39-42d8-996d-978df9571786.png)
+
+###  Organization (The Root Level)
+
+This is the "Top-Level Container." It represents your entire company or a major division.
+
+-   **The Governance Role:** This is where you set the global rules. You define who has access (RBAC) and apply **Policy Sets** (like "No unencrypted S3 buckets") that apply to _every_ project and workspace underneath it.
+    
+-   **Analogy:** The headquarters of a building.
+    
+
+###  Projects (The Logical Grouping)
+
+Projects sit inside the Organization. They allow you to group Workspaces by business unit (e.g., "Marketing") or by platform (e.g., "AWS Infrastructure").
+
+-   **The Governance Role:** Projects allow for **Delegated Administration**. You can give a Team Lead "Admin" rights to the "Banking Project" without giving them access to the "Internal HR Project."
+    
+-   **Analogy:** Different floors in the building dedicated to specific departments.
+    
+
+### 3\. Workspaces (The Execution Level)
+
+This is where the actual `.tf` files live and where the `terraform plan` and `apply` happen. A workspace usually represents a specific **Environment** (Dev/Prod) or a **Component** (Network/Database).
+
+-   **The Governance Role:** This is the "Safety Valve." Each workspace has its own state file, variables, and run history. It prevents a change in "Dev" from accidentally touching "Prod."
+    
+-   **Analogy:** Individual offices where specific tasks get done.
+    
+
+## HCP Terraform Workflow Types
+
+One of the biggest advantages of **HCP Terraform** is flexibility. It doesn’t force a single way of working—instead, it supports **three distinct workflow types**, allowing teams to adopt Terraform at their own pace.
+
+Let’s break them down:
+
+1.  ## Version Control–Driven Workflow (Recommended)
+    
+
+This is the **most popular and best-practice workflow** for teams. In this model, HCP Terraform is directly integrated with a Git-based version control system such as **GitHub, GitLab, or Bitbucket**.
+
+#### How It Works
+
+-   Terraform configuration is stored in a Git repository
+    
+-   Every commit or pull request automatically triggers a Terraform run
+    
+-   `terraform plan` runs first and is visible in the UI
+    
+-   Approval is required before `terraform apply`
+    
+-   State is updated centrally after apply
+    
+
+#### Why Use It
+
+-   Enables **peer review and approvals**
+    
+-   Provides **full auditability**
+    
+-   Eliminates manual execution errors
+    
+-   Fits naturally into CI/CD pipelines
+    
+
+#### Best For
+
+-   Teams and organizations
+    
+-   Production environments
+    
+-   Regulated or compliance-heavy setups
+    
+
+This workflow turns Terraform into a true **GitOps-style infrastructure platform**.
+
+### **Hands-On Demo (Step-by-Step)**
+
+### Step1 : Account setup
+
+-   Go to : [https://app.terraform.io/](https://app.terraform.io/)
+    
+-   Create account → Verify email → Create **Organization** (personal/business).
+    
+
+### **Step 2: Create Project**
+
+-   New Project: "test"
+
+### **Step 3: Create Workspace**
+
+-   Click on create workspace
+    
+-   Choose Version Control Workflow
+    
+-   Choose GitHub
+    
+-   Select repo: Day26/version-control
+    
+
+**First Run Failed** - No AWS credentials. Fixed by adding **Environment Variables**:
+
+Set the AWS\_ACCESS\_KEY\_ID, AWS\_SECRET\_ACCESS\_KEY
+
+### Step 4: Execute Run
+
+![](day-26/14c60d4a-21a2-45eb-8965-395e8d2da8d7.png)
+
+![](day-26/b37eb08f-b60b-4df7-be45-05b70789ff55.png)
+
+### **Step 4: Test Auto-Trigger**
+
+Edit [main.tf](http://main.tf/) add one more bucket and push the changes to git hub repo
+
+**Changes Auto-detected** → Planned → Manual approval → Applied
+
+![](day-26/a0dd0419-4586-4bdb-9473-c79f6b22d647.png)
+
+### **Step 5: Delete Resources**
+
+-   Navigate to your **Workspace**.
+    
+-   Go to **Settings** > **Destruction and Deletion**.
+    
+-   Click the red **Queue destroy plan** button
+    
+-   You will be prompted to type the **Workspace Name** to confirm (this prevents accidental clicks).
+    
+
+HCP Terraform will generate a plan showing everything it will delete. You must then click **Confirm & Apply** to actually execute the destruction.
+
+![](day-26/426e97b2-8331-4e91-b60e-cff0cbefe82a.png)
+
+2.  ## CLI-Driven Workflow (Familiar & Transitional)
+    
+
+The CLI-driven workflow is ideal for engineers who are comfortable with running Terraform locally but want the **visibility and safety** of HCP Terraform. Here, you still use the Terraform CLI—but **execution and state are handled remotely**.
+
+#### How It Works
+
+-   You run `terraform init`, `plan`, and `apply` locally
+    
+-   Commands execute against an HCP Terraform workspace
+    
+-   Plans and applies appear in the HCP Terraform UI
+    
+-   State is stored and locked remotely
+    
+
+#### Why Use It
+
+-   Minimal change from traditional CLI usage
+    
+-   Centralized state and locking
+    
+-   UI visibility without changing workflows immediately
+    
+
+#### Best For
+
+-   Individual engineers
+    
+-   Teams migrating from CLI to VCS workflows
+    
+-   Proof-of-concept or learning environments
+    
+
+Think of this as a **bridge between local Terraform and full automation**.
+
+### **Hands-On Demo (Step-by-Step)**
+
+### Step 1: Create Workspace
+
+-   Navigate to your **Projects**.
+    
+-   Click New Workspace
+    
+-   Select CLI Driven Workspace
+    
+-   Workspace Name: cli-demo
+    
+
+### Step2: Inside Project
+
+-   Go inside Visual Studio project folder
+    
+    ![](day-26/3853c4ec-27f8-4526-9cf1-35c182a586f0.png)
+    
+
+execute command
+
+```
+terraform login
+```
+
+Generate token in HCP and apply that in local
+
+![](day-26/f79a2f9a-4211-4bdc-bb3a-ed8c5a78f286.png)
+
+-   Update [](http://main.tf/)**[main.tf](http://main.tf/)**:
+    
+    ```
+      terraform { 
+        cloud { 
+    
+          organization = "mathanki-cloud" 
+    
+          workspaces { 
+            name = "cli-demo" 
+          } 
+        } 
+      }
+    ```
+    
+-   **Remove** [](http://backend.tf/)**[backend.tf](http://backend.tf/)** [**(conflicts**](http://backend.tf/) **with cloud)**
+    
+-   Run the terraform flow
+    
+    ```
+      terraform init
+      terraform plan
+    ```
+    
+
+**First Run Failed** - No AWS credentials. Fixed by adding **Environment Variables**:
+
+Set the AWS\_ACCESS\_KEY\_ID, AWS\_SECRET\_ACCESS\_KEY
+
+After enter the environemt variables in HCP then execute terraform plan again it should success.
+
+![](day-26/24b1e31e-1256-47f0-8f79-03ff32410c19.png)
+
+![](day-26/9ac0dd04-c63c-4bda-a896-681c9f441b61.png)
+
+-   Run terraform apply
+    
+    ![](day-26/ca5b848b-2521-4557-8b81-69c9919a46b8.png)
+    
+    ![](day-26/2262e3a1-47cf-4604-a379-9eb3114cc9df.png)
+    
+    ### Step 3: **Delete Resources**
+    
+    Run terraform destroy
+    
+    ![](day-26/6bfc3c94-a7eb-470f-91f7-8cbdfe137bd2.png)
+    
+    ![](day-26/a5621ef2-1f74-46c5-ae3f-8f10a34ba2b1.png)
+    
+
+3.  ## API-Driven Workflow (Fully Automated)
+    
+    The API-driven workflow is designed for **advanced automation** and custom platforms.
+    
+    Instead of relying on Git commits or manual CLI runs, Terraform executions are triggered **programmatically** using HCP Terraform’s APIs.
+    
+    #### How It Works
+    
+    -   External systems trigger Terraform runs via API calls
+        
+    -   Can be integrated with:
+        
+        -   Custom CI/CD pipelines
+            
+        -   Internal developer platforms
+            
+        -   Event-driven workflows
+            
+    -   Execution and state remain fully managed by HCP Terraform
+        
+
+#### Why Use It
+
+-   Maximum flexibility
+    
+-   Deep integration with existing systems
+    
+-   Fully automated, no human intervention required
+    
+
+#### Best For
+
+-   Platform engineering teams
+    
+-   Large enterprises
+    
+-   Custom provisioning portals
+    
+
+This workflow unlocks **Terraform as a service** inside your organization.
+
+## Conclusion
+
+Terraform CLI is an effective starting point for Infrastructure as Code, but as environments and teams scale, **local and manual workflows become limiting**. Production-grade infrastructure requires stronger controls around **state management, collaboration, security, and governance**.
+
+HCP Terraform addresses these challenges by providing a **centralized, managed platform** for running Terraform. Remote execution, VCS-driven workflows, policy enforcement, role-based access control, and multiple execution models enable teams to operate Terraform **safely and consistently at scale**.
+
+Whether supporting individual engineers, collaborative teams, or enterprise platforms, HCP Terraform offers the flexibility to evolve from CLI-based usage to fully automated workflows without disrupting existing practices.
+
+**Infrastructure as Code is not only about defining resources—it is about operating them responsibly.**
+
+Moving beyond the CLI with HCP Terraform is a critical step toward reliable, secure, and scalable cloud infrastructure.
+
+## Reference
+
+https://www.youtube.com/watch?v=n1kS8jKf70E&list=PLl4APkPHzsUXcfBSJDExYR-a4fQiZGmMp&index=28
